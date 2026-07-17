@@ -1,1 +1,120 @@
 @import 'tailwindcss';
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Sistema de diseño
+   ─────────────────────────────────────────────────────────────────────────
+   Paleta: oscura. No es una moda: la app se usa en el gimnasio, a menudo con
+   poca luz, y en un móvil OLED el negro real no enciende el píxel (gasta menos
+   batería). Además el gris claro genérico de plantilla desaparece.
+
+   Los grises llevan una pizca de azul (no son grises puros) para que la
+   pantalla no parezca sucia, y el acento es un verde "volt" muy saturado: sobre
+   un fondo casi negro, un color así solo puede usarse en cantidades pequeñas,
+   lo que obliga a que solo lo lleve LA acción importante de cada pantalla.
+   ───────────────────────────────────────────────────────────────────────── */
+@theme {
+  --color-ink-950: #08090c; /* fondo de la app */
+  --color-ink-900: #0f1116; /* tarjetas */
+  --color-ink-850: #14161d; /* tarjeta elevada */
+  --color-ink-800: #1c1f28; /* campos de formulario */
+  --color-ink-700: #262a35; /* bordes */
+  --color-ink-600: #363b49; /* bordes con foco */
+  --color-ink-400: #7d8497; /* texto secundario */
+  --color-ink-300: #a3aabb; /* texto terciario */
+  --color-ink-100: #e8eaf0; /* texto principal */
+
+  --color-volt-400: #d4ff4f;
+  --color-volt-500: #c2f83a; /* acento */
+  --color-volt-600: #a8e01f;
+
+  --color-danger: #ff5c5c;
+
+  /* Curvas propias: las de CSS (ease-out, ease-in-out) son demasiado flojas y
+     dejan las animaciones con aspecto de "por defecto". Estas tienen empuje. */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background: var(--color-ink-950);
+    color: var(--color-ink-100);
+    font-family:
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    /* Sin rebote elástico al final del scroll: dentro de una app instalada
+       delata que es una web. */
+    overscroll-behavior-y: none;
+  }
+
+  /* Los títulos grandes necesitan tracking negativo: al crecer, las letras se
+     leen demasiado separadas. El texto pequeño no lo lleva. */
+  h1,
+  h2 {
+    letter-spacing: -0.02em;
+  }
+}
+
+@utility tnum {
+  /* Cifras de ancho fijo. Esta app es una lista de números (10 × 40 kg) y sin
+     esto las columnas bailan al cambiar de dígito. */
+  font-variant-numeric: tabular-nums;
+}
+
+@utility press {
+  /* Respuesta al pulsar: la pantalla confirma que te ha oído, al instante y en
+     el pointer-down, no al soltar. */
+  transition: transform 140ms var(--ease-out-strong);
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+/* Entradas. Duraciones cortas (<300 ms) y ease-out: arrancan rápido, que es el
+   momento exacto que el usuario está mirando. `ease-in` haría lo contrario y
+   parecería lento aunque durara igual. */
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@utility animate-dialog {
+  animation: dialog-in 240ms var(--ease-out-strong) both;
+}
+
+@utility animate-fade-up {
+  animation: fade-up 260ms var(--ease-out-strong) both;
+}
+
+/* Movimiento reducido: no significa "sin feedback", significa sin
+   desplazamiento. Se conservan opacidad y color, que ayudan a entender. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
