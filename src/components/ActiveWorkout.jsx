@@ -1,8 +1,41 @@
 import { useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useWorkouts } from '../context/WorkoutContext'
+import { lastTimeForExercise } from '../stats.js'
 import { formatTime, formatWeight } from '../format'
 import ConfirmDialog from './ConfirmDialog'
 import ExerciseSearch from './ExerciseSearch'
+
+// Referencia atenuada de lo que hice la última vez en este ejercicio. Solo LEE:
+// useLiveQuery vuelve a consultar sola si cambian las series, pero no toca nada
+// guardado. Se muestra en gris flojito para orientar sin competir con los campos
+// donde registro las series de hoy.
+function UltimaVez({ exerciseId, workoutId }) {
+  const ref = useLiveQuery(
+    () => lastTimeForExercise(exerciseId, workoutId),
+    [exerciseId, workoutId],
+  )
+
+  // `undefined` = la consulta aún está en vuelo: no pintamos nada para no
+  // provocar un parpadeo antes de saber si hay referencia.
+  if (ref === undefined) return null
+
+  // `null` = primera vez que hago este ejercicio. Una nota discreta, sin números.
+  if (ref === null) {
+    return (
+      <p className="mt-2.5 pl-1 text-[12px] text-ink-400/70">Primera vez</p>
+    )
+  }
+
+  return (
+    <p className="tnum mt-2.5 pl-1 text-[12px] text-ink-400">
+      <span className="text-ink-400/70">Última vez:</span>{' '}
+      {ref.sets
+        .map((s) => `${s.reps}×${formatWeight(s.weight)}`)
+        .join(', ')}
+    </p>
+  )
+}
 
 function SetForm({ onAdd }) {
   const [reps, setReps] = useState('')
@@ -153,6 +186,8 @@ function ExerciseCard({ item, indice }) {
           ))}
         </ul>
       )}
+
+      <UltimaVez exerciseId={link.exerciseId} workoutId={link.workoutId} />
 
       <SetForm onAdd={(reps, weight) => addSet(link, reps, weight)} />
     </div>
